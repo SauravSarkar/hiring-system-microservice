@@ -1,6 +1,6 @@
 /**
- * @fileoverview Vercel-ready microservice for the candidate challenge.
- * This version exports the Express app object and does not call app.listen().
+ * @fileoverview Final production version of the Vercel-ready microservice.
+ * This version includes a bug fix for handling non-existent books.
  */
 const express = require('express');
 const cors = require('cors');
@@ -21,7 +21,6 @@ app.route('/health')
     .get((req, res) => {
         return res.status(200).json({ status: 'ok' });
     })
-    // Any method other than GET on this path will be handled here
     .all(methodNotAllowed); 
     
 // --- Route: Book Information ---
@@ -29,7 +28,6 @@ app.route('/book-info')
     .get(async (req, res) => {
         const { isbn } = req.query;
 
-        // Handles malformed or missing ISBNs
         if (!isbn || !/^[0-9X]{10,13}$/i.test(isbn)) {
             return res.status(400).json({ error: "Malformed or missing ISBN" });
         }
@@ -39,20 +37,18 @@ app.route('/book-info')
         try {
             const apiResponse = await fetch(apiUrl);
             if (!apiResponse.ok) {
-                // Gracefully handles upstream API failures
                 throw new Error(`Open Library API returned status ${apiResponse.status}`);
             }
+            
             const data = await apiResponse.json();
             const bookKey = `ISBN:${isbn}`;
+            const bookData = data[bookKey];
 
-            // Handles non-existent ISBNs where the API returns an empty object
+            // **FIXED**: Robust check for empty or invalid API responses
             if (Object.keys(data).length === 0 || !bookData || !bookData.title) {
                 return res.status(404).json({ error: "Book not found" });
             }
 
-            const bookData = data[bookKey];
-
-            // Transforms data to the required simple format
             const transformedData = {
                 title: bookData.title,
                 author: bookData.authors ? bookData.authors[0].name : "Unknown",
@@ -63,11 +59,9 @@ app.route('/book-info')
 
         } catch (error) {
             console.error(`Server error for ISBN ${isbn}:`, error.message);
-            // Returns a server-side error if the external API fails
             return res.status(502).json({ error: "Failed to fetch data from Open Library API" });
         }
     })
-    // Any method other than GET on this path will be handled here
     .all(methodNotAllowed);
 
 // Export the Express app object for Vercel's serverless environment
