@@ -24,8 +24,8 @@ app.route('/pokemon-info')
     .get(async (req, res) => {
         const { name } = req.query;
 
-        // **FIXED**: Updated the regex to allow numbers in the name (e.g., for "testing123").
-        const validNameRegex = /^[a-z0-9-]+$/;
+        // **FINAL FIX**: This regex now requires at least one letter, rejecting number-only inputs.
+        const validNameRegex = /^(?=.*[a-z])[a-z0-9-]+$/;
         if (!name || typeof name !== 'string' || !validNameRegex.test(name)) {
             return res.status(400).json({ error: "Malformed or missing name" });
         }
