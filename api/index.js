@@ -24,9 +24,8 @@ app.route('/pokemon-info')
     .get(async (req, res) => {
         const { name } = req.query;
 
-        // **FIXED**: Added a strict validation regex to reject malformed names upfront.
-        // This regex ensures the name contains only lowercase letters and hyphens.
-        const validNameRegex = /^[a-z-]+$/;
+        // **FIXED**: Updated the regex to allow numbers in the name (e.g., for "testing123").
+        const validNameRegex = /^[a-z0-9-]+$/;
         if (!name || typeof name !== 'string' || !validNameRegex.test(name)) {
             return res.status(400).json({ error: "Malformed or missing name" });
         }
