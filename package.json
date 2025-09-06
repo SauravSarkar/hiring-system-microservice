@@ -1,0 +1,13 @@
+{
+  "name": "hiring-system-microservice",
+  "version": "1.0.0",
+  "description": "Candidate challenge microservice for the automated hiring system.",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
+  }
+}
