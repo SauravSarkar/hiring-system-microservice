@@ -46,7 +46,7 @@ app.route('/book-info')
             const bookKey = `ISBN:${isbn}`;
 
             // Handles non-existent ISBNs where the API returns an empty object
-            if (Object.keys(data).length === 0 || !data[bookKey]) {
+            if (Object.keys(data).length === 0 || !bookData || !bookData.title) {
                 return res.status(404).json({ error: "Book not found" });
             }
 
