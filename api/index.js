@@ -1,26 +1,21 @@
 /**
- * @fileoverview Final production version of the Vercel-ready microservice.
- * This version includes a bug fix for handling non-existent books.
+ * @fileoverview Final, production-ready microservice for the candidate challenge.
+ * This version includes the corrected logic for handling non-existent books.
  */
 const express = require('express');
 const cors = require('cors');
 
 const app = express();
-
-// Apply CORS middleware to allow cross-origin requests
 app.use(cors());
 
-// Middleware to handle disallowed HTTP methods
 const methodNotAllowed = (req, res) => {
-    res.setHeader('Allow', 'GET'); // Inform the client which method is allowed
+    res.setHeader('Allow', 'GET');
     return res.status(405).json({ error: 'Method Not Allowed' });
 };
 
 // --- Route: Health Check ---
 app.route('/health')
-    .get((req, res) => {
-        return res.status(200).json({ status: 'ok' });
-    })
+    .get((req, res) => res.status(200).json({ status: 'ok' }))
     .all(methodNotAllowed); 
     
 // --- Route: Book Information ---
@@ -44,8 +39,8 @@ app.route('/book-info')
             const bookKey = `ISBN:${isbn}`;
             const bookData = data[bookKey];
 
-            // **FIXED**: Robust check for empty or invalid API responses
-            if (Object.keys(data).length === 0 || !bookData || !bookData.title) {
+            // **FIXED**: This is the corrected, robust check.
+            if (!data || Object.keys(data).length === 0 || !bookData || !bookData.title) {
                 return res.status(404).json({ error: "Book not found" });
             }
 
@@ -64,5 +59,5 @@ app.route('/book-info')
     })
     .all(methodNotAllowed);
 
-// Export the Express app object for Vercel's serverless environment
 module.exports = app;
+
