@@ -1,7 +1,6 @@
 /**
- * @fileoverview A robust, Vercel-ready microservice for the Pokémon API challenge.
- * This version correctly fetches, transforms, and serves Pokémon data according
- * to the new challenge specifications.
+ * @fileoverview Final production-ready microservice for the Pokémon API challenge.
+ * This version includes strict input validation to handle all malformed input tests.
  */
 const express = require('express');
 const cors = require('cors');
@@ -25,28 +24,27 @@ app.route('/pokemon-info')
     .get(async (req, res) => {
         const { name } = req.query;
 
-        // Handles malformed or missing name parameter, as per the test suite.
-        if (!name || typeof name !== 'string' || name.trim() === '') {
+        // **FIXED**: Added a strict validation regex to reject malformed names upfront.
+        // This regex ensures the name contains only lowercase letters and hyphens.
+        const validNameRegex = /^[a-z-]+$/;
+        if (!name || typeof name !== 'string' || !validNameRegex.test(name)) {
             return res.status(400).json({ error: "Malformed or missing name" });
         }
 
-        const apiUrl = `https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`;
+        const apiUrl = `https://pokeapi.co/api/v2/pokemon/${name}`;
 
         try {
             const apiResponse = await fetch(apiUrl);
             
-            // The PokéAPI correctly returns a 404 status for non-existent Pokémon.
             if (!apiResponse.ok) {
                 if (apiResponse.status === 404) {
                     return res.status(404).json({ error: "Pokemon not found" });
                 }
-                // For other upstream errors (e.g., 5xx from PokéAPI).
                 throw new Error(`PokéAPI returned status ${apiResponse.status}`);
             }
             
             const data = await apiResponse.json();
 
-            // Transforms the complex API data into the simple format required by the challenge.
             const transformedData = {
                 name: data.name,
                 type: data.types[0]?.type?.name || "unknown",
@@ -59,7 +57,6 @@ app.route('/pokemon-info')
 
         } catch (error) {
             console.error(`Server error for Pokémon ${name}:`, error.message);
-            // Returns a generic server error if the fetch operation fails.
             return res.status(502).json({ error: "Failed to fetch data from PokéAPI" });
         }
     })
